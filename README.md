@@ -92,3 +92,5 @@ void app_main(void)
     }
 }
 ```
+
+Any [feedback](mailto:github@azholtikov.ru) will be gladly accepted.
