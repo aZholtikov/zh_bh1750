@@ -22,9 +22,9 @@ extern "C"
 
     typedef enum zh_bh1750_operation_mode_t
     {
-        ZH_LOW_RESOLUTION_MODE = 0, //
-        ZH_HIGH_RESOLUTION_MODE,    //
-        ZH_HIGH_RESOLUTION_MODE_2,  //
+        ZH_LOW_RESOLUTION_MODE = 0, // Measurement with 4 lx resolution.
+        ZH_HIGH_RESOLUTION_MODE,    // Measurement with 1 lx resolution.
+        ZH_HIGH_RESOLUTION_MODE_2,  // Measurement with 0,5 lx resolution.
     } __attribute__((packed)) zh_bh1750_operation_mode_t;
 
     typedef enum zh_bh1750_work_mode_t
