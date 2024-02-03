@@ -1,4 +1,4 @@
-# ESP32 ESP-IDF and ESP8266 RTOS SDK component for BH1750 Ambient Light Sensor
+# ESP32 ESP-IDF and ESP8266 RTOS SDK component for BH1750 ambient light sensor
 
 ## Tested on
 
