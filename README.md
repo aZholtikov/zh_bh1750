@@ -86,7 +86,7 @@ void app_main(void)
     for (;;)
     {
         zh_bh1750_read(&lux);
-        printf("Lux %1.2f\n", lux);
+        printf("Lux %0.2f\n", lux);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
