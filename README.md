@@ -72,11 +72,10 @@ void app_main(void)
         .master.clk_speed = 100000,
 #endif
     };
-#ifdef CONFIG_IDF_TARGET_ESP8266
     i2c_param_config(I2C_PORT, &i2c_config);
+#ifdef CONFIG_IDF_TARGET_ESP8266
     i2c_driver_install(I2C_PORT, i2c_config.mode);
 #else
-    i2c_param_config(I2C_PORT, &i2c_config);
     i2c_driver_install(I2C_PORT, i2c_config.mode, 0, 0, 0);
 #endif
     zh_bh1750_init_config_t zh_bh1750_init_config = ZH_BH1750_INIT_CONFIG_DEFAULT();
@@ -87,7 +86,7 @@ void app_main(void)
     for (;;)
     {
         zh_bh1750_read(&lux);
-        printf("Lux %f\n", lux);
+        printf("Lux %1.2f\n", lux);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
