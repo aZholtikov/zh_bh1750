@@ -87,11 +87,11 @@ ZH_BH1750_READ:
     i2c_cmd_link_delete(i2c_cmd_handle);
     if (s_zh_bh1750_init_config.operation_mode == ZH_HIGH_RESOLUTION_MODE_2)
     {
-        *data = ((sensor_data_high << 8 | sensor_data_low) / 1.2) * (1 / 1.2 * (69.0 / s_sensivity) / 2);
+        *data = (sensor_data_high << 8 | sensor_data_low) * (1 / 1.2 * (69.0 / s_sensivity) / 2);
     }
     else
     {
-        *data = ((sensor_data_high << 8 | sensor_data_low) / 1.2) * (1 / 1.2 * (69.0 / s_sensivity));
+        *data = (sensor_data_high << 8 | sensor_data_low) * (1 / 1.2 * (69.0 / s_sensivity));
     }
 ZH_BH1750_READ_EXIT:
     return esp_err;
