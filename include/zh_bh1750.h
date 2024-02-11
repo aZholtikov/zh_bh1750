@@ -53,7 +53,8 @@ extern "C"
      * @param[in]  config  Pointer to BH1750 initialized configuration structure. Can point to a temporary variable.
      *
      * @return
-     *              - ESP_OK always
+     *              - ESP_OK if initialization was success
+     *              - ESP_ERR_INVALID_ARG if parameter error
      */
     esp_err_t zh_bh1750_init(zh_bh1750_init_config_t *config);
 

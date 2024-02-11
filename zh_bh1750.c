@@ -23,6 +23,10 @@ static uint8_t s_sensivity = ZH_SENSITIVITY_DEFAULT;
 
 esp_err_t zh_bh1750_init(zh_bh1750_init_config_t *config)
 {
+    if (config == NULL)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
     s_zh_bh1750_init_config = *config;
     switch (s_zh_bh1750_init_config.operation_mode)
     {
