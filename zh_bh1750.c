@@ -21,10 +21,13 @@ static bool _is_first_start = false;
 static uint8_t _time = 0;
 static uint8_t _sensivity = SENSITIVITY_DEFAULT;
 static bool _is_initialized = false;
+#ifndef CONFIG_IDF_TARGET_ESP8266
+static i2c_master_dev_handle_t _bh1750_handle = {0};
+#endif
 
 static const char *TAG = "zh_bh1750";
 
-esp_err_t zh_bh1750_init(zh_bh1750_init_config_t *config)
+esp_err_t zh_bh1750_init(const zh_bh1750_init_config_t *config)
 {
     ESP_LOGI(TAG, "BH1750 initialization begin.");
     if (config == NULL)
@@ -33,6 +36,19 @@ esp_err_t zh_bh1750_init(zh_bh1750_init_config_t *config)
         return ESP_ERR_INVALID_ARG;
     }
     _init_config = *config;
+#ifndef CONFIG_IDF_TARGET_ESP8266
+    i2c_device_config_t bh1750_config = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = _init_config.i2c_address,
+        .scl_speed_hz = 100000,
+    };
+    i2c_master_bus_add_device(_init_config.i2c_handle, &bh1750_config, &_bh1750_handle);
+    if (i2c_master_probe(_init_config.i2c_handle, _init_config.i2c_address, 1000 / portTICK_PERIOD_MS) != ESP_OK)
+    {
+        ESP_LOGE(TAG, "BH1750 initialization fail. Sensor not connected or not responded.");
+        return ESP_ERR_NOT_FOUND;
+    }
+#endif
     switch (_init_config.operation_mode)
     {
     case LOW_RESOLUTION:;
@@ -69,8 +85,7 @@ esp_err_t zh_bh1750_read(float *data)
         return ESP_ERR_NOT_FOUND;
     }
     esp_err_t esp_err = ESP_OK;
-    uint8_t sensor_data_high = 0;
-    uint8_t sensor_data_low = 0;
+    uint8_t sensor_data[2] = {0};
     if (_init_config.work_mode == CONTINUOUSLY)
     {
         if (_is_first_start == true)
@@ -82,6 +97,7 @@ esp_err_t zh_bh1750_read(float *data)
             _is_first_start = true;
         }
     }
+#ifdef CONFIG_IDF_TARGET_ESP8266
     i2c_cmd_handle_t i2c_cmd_handle = i2c_cmd_link_create();
     i2c_master_start(i2c_cmd_handle);
     i2c_master_write_byte(i2c_cmd_handle, _init_config.i2c_address << 1 | I2C_MASTER_WRITE, true);
@@ -89,6 +105,9 @@ esp_err_t zh_bh1750_read(float *data)
     i2c_master_stop(i2c_cmd_handle);
     esp_err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(i2c_cmd_handle);
+#else
+    esp_err = i2c_master_transmit(_bh1750_handle, &_command, sizeof(_command), 1000 / portTICK_PERIOD_MS);
+#endif
     if (esp_err != ESP_OK)
     {
         ESP_LOGE(TAG, "BH1750 read fail. I2C driver error.");
@@ -96,14 +115,18 @@ esp_err_t zh_bh1750_read(float *data)
     }
     vTaskDelay(((_sensivity / SENSITIVITY_DEFAULT) * _time) / portTICK_PERIOD_MS);
 READ:
+#ifdef CONFIG_IDF_TARGET_ESP8266
     i2c_cmd_handle = i2c_cmd_link_create();
     i2c_master_start(i2c_cmd_handle);
     i2c_master_write_byte(i2c_cmd_handle, _init_config.i2c_address << 1 | I2C_MASTER_READ, true);
-    i2c_master_read_byte(i2c_cmd_handle, &sensor_data_high, I2C_MASTER_ACK);
-    i2c_master_read_byte(i2c_cmd_handle, &sensor_data_low, I2C_MASTER_NACK);
+    i2c_master_read_byte(i2c_cmd_handle, &sensor_data[0], I2C_MASTER_ACK);
+    i2c_master_read_byte(i2c_cmd_handle, &sensor_data[1], I2C_MASTER_NACK);
     i2c_master_stop(i2c_cmd_handle);
     esp_err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(i2c_cmd_handle);
+#else
+    esp_err = i2c_master_receive(_bh1750_handle, sensor_data, sizeof(sensor_data), 1000 / portTICK_PERIOD_MS);
+#endif
     if (esp_err != ESP_OK)
     {
         ESP_LOGE(TAG, "BH1750 read fail. I2C driver error.");
@@ -111,17 +134,17 @@ READ:
     }
     if (_init_config.operation_mode == HIGH_RESOLUTION_2)
     {
-        *data = (sensor_data_high << 8 | sensor_data_low) * (1 / 1.2 * (69.0 / _sensivity) / 2);
+        *data = (sensor_data[0] << 8 | sensor_data[1]) * (1 / 1.2 * (69.0 / _sensivity) / 2);
     }
     else
     {
-        *data = (sensor_data_high << 8 | sensor_data_low) * (1 / 1.2 * (69.0 / _sensivity));
+        *data = (sensor_data[0] << 8 | sensor_data[1]) * (1 / 1.2 * (69.0 / _sensivity));
     }
     ESP_LOGI(TAG, "BH1750 read success.");
     return ESP_OK;
 }
 
-esp_err_t zh_bh1750_adjust(uint8_t value)
+esp_err_t zh_bh1750_adjust(const uint8_t value)
 {
     ESP_LOGI(TAG, "BH1750 adjust begin.");
     if ((value < 31 || value > 254))
@@ -135,7 +158,7 @@ esp_err_t zh_bh1750_adjust(uint8_t value)
         return ESP_ERR_NOT_FOUND;
     }
     esp_err_t esp_err = ESP_OK;
-    _sensivity = value;
+#ifdef CONFIG_IDF_TARGET_ESP8266
     i2c_cmd_handle_t i2c_cmd_handle = i2c_cmd_link_create();
     i2c_master_start(i2c_cmd_handle);
     i2c_master_write_byte(i2c_cmd_handle, _init_config.i2c_address << 1 | I2C_MASTER_WRITE, true);
@@ -155,6 +178,10 @@ esp_err_t zh_bh1750_adjust(uint8_t value)
     i2c_master_stop(i2c_cmd_handle);
     esp_err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(i2c_cmd_handle);
+#else
+    uint8_t sensitivity_data[2] = {value >> 5 | MEASUREMENT_TIME_HIGH_BIT, (value & 0b00011111) | MEASUREMENT_TIME_LOW_BIT};
+    esp_err = i2c_master_transmit(_bh1750_handle, sensitivity_data, sizeof(sensitivity_data), 1000 / portTICK_PERIOD_MS);
+#endif
     if (esp_err != ESP_OK)
     {
         ESP_LOGE(TAG, "BH1750 adjust fail. I2C driver error.");
@@ -164,6 +191,7 @@ esp_err_t zh_bh1750_adjust(uint8_t value)
     {
         _is_first_start = false;
     }
+    _sensivity = value;
     ESP_LOGI(TAG, "BH1750 adjust success.");
     return ESP_OK;
 }

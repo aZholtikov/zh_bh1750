@@ -2,11 +2,13 @@
 
 #include "esp_err.h"
 #include "esp_log.h"
-#include "driver/i2c.h"
 #ifdef CONFIG_IDF_TARGET_ESP8266
+#include "driver/i2c.h"
+#else
+#include "driver/i2c_master.h"
+#endif
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#endif
 
 /**
  * @brief Default values for zh_bh1750_init_config_t structure for initial initialization of the sensor.
@@ -51,6 +53,10 @@ extern "C"
             ONE_TIME      // One time measurement. Sensor is power down after measurement.
         } work_mode;
         bool i2c_port; // I2C port.
+#ifndef CONFIG_IDF_TARGET_ESP8266
+        i2c_master_bus_handle_t i2c_handle; // Unique I2C bus handle.
+#endif
+
     } zh_bh1750_init_config_t;
 
     /**
@@ -67,8 +73,9 @@ extern "C"
      * @return
      *              - ESP_OK if initialization was success
      *              - ESP_ERR_INVALID_ARG if parameter error
+     *              - ESP_ERR_NOT_FOUND if sensor not connected or not responded
      */
-    esp_err_t zh_bh1750_init(zh_bh1750_init_config_t *config);
+    esp_err_t zh_bh1750_init(const zh_bh1750_init_config_t *config);
 
     /**
      * @brief Read BH1750 sensor.
@@ -100,7 +107,7 @@ extern "C"
      *              - ESP_ERR_INVALID_STATE if I2C driver not installed or not in master mode
      *              - ESP_ERR_TIMEOUT if operation timeout because the bus is busy
      */
-    esp_err_t zh_bh1750_adjust(uint8_t value);
+    esp_err_t zh_bh1750_adjust(const uint8_t value);
 
 #ifdef __cplusplus
 }

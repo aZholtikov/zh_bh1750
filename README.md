@@ -32,32 +32,41 @@ Reading the sensor:
 void app_main(void)
 {
     esp_log_level_set("zh_bh1750", ESP_LOG_NONE);
+#ifdef CONFIG_IDF_TARGET_ESP8266
     i2c_config_t i2c_config = {
         .mode = I2C_MODE_MASTER,
-        .sda_io_num = GPIO_NUM_21, // In accordance with used chip.
+        .sda_io_num = GPIO_NUM_4, // In accordance with used chip.
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_io_num = GPIO_NUM_22, // In accordance with used chip.
+        .scl_io_num = GPIO_NUM_5, // In accordance with used chip.
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
-#ifndef CONFIG_IDF_TARGET_ESP8266
-        .master.clk_speed = 100000,
-#endif
     };
-#ifdef CONFIG_IDF_TARGET_ESP8266
-    i2c_param_config(I2C_PORT, &i2c_config);
     i2c_driver_install(I2C_PORT, i2c_config.mode);
-#else
     i2c_param_config(I2C_PORT, &i2c_config);
-    i2c_driver_install(I2C_PORT, i2c_config.mode, 0, 0, 0);
+#else
+    i2c_master_bus_config_t i2c_bus_config = {
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .i2c_port = I2C_PORT,
+        .scl_io_num = GPIO_NUM_22, // In accordance with used chip.
+        .sda_io_num = GPIO_NUM_21, // In accordance with used chip.
+        .glitch_ignore_cnt = 7,
+        .flags.enable_internal_pullup = true,
+    };
+    i2c_master_bus_handle_t i2c_bus_handle;
+    i2c_new_master_bus(&i2c_bus_config, &i2c_bus_handle);
 #endif
     zh_bh1750_init_config_t zh_bh1750_init_config = ZH_BH1750_INIT_CONFIG_DEFAULT();
+#ifdef CONFIG_IDF_TARGET_ESP8266
     zh_bh1750_init_config.i2c_port = I2C_PORT;
+#else
+    zh_bh1750_init_config.i2c_handle = i2c_bus_handle;
+#endif
     zh_bh1750_init(&zh_bh1750_init_config);
     zh_bh1750_adjust(69); // Just for an example of how to change the sensor sensitivity.
     float lux = 0.0;
     for (;;)
     {
         zh_bh1750_read(&lux);
-        printf("Lux %0.2f\n", lux);
+        printf("Lux %d\n", (uint32_t)lux);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
