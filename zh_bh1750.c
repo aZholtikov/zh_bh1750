@@ -84,6 +84,7 @@ esp_err_t zh_bh1750_read(float *data)
         ESP_LOGE(TAG, "BH1750 read fail. BH1750 not initialized.");
         return ESP_ERR_NOT_FOUND;
     }
+REPEATE:
     esp_err_t esp_err = ESP_OK;
     uint8_t sensor_data[2] = {0};
     if (_init_config.work_mode == CONTINUOUSLY)
@@ -132,13 +133,39 @@ READ:
         ESP_LOGE(TAG, "BH1750 read fail. I2C driver error.");
         return esp_err;
     }
+    uint32_t raw_data = sensor_data[0] << 8 | sensor_data[1];
+    if (raw_data == 65536 || raw_data == 0)
+    {
+        ESP_LOGW(TAG, "BH1750 read error. Sensitivity adjustment required. Current sensivity level %d", _sensivity);
+    }
+    if (_init_config.auto_adjust == true)
+    {
+        printf("RAW data %ld\n", raw_data);
+        printf("Sensivity %d\n", _sensivity);
+        if (raw_data == 65536 && _sensivity > 31)
+        {
+            if (zh_bh1750_adjust(_sensivity - 1) == ESP_OK)
+            {
+                --_sensivity;
+                goto REPEATE;
+            }
+        }
+        if (raw_data == 0 && _sensivity < 254)
+        {
+            if (zh_bh1750_adjust(_sensivity + 1) == ESP_OK)
+            {
+                ++_sensivity;
+                goto REPEATE;
+            }
+        }
+    }
     if (_init_config.operation_mode == HIGH_RESOLUTION_2)
     {
-        *data = (sensor_data[0] << 8 | sensor_data[1]) * (1 / 1.2 * (69.0 / _sensivity) / 2);
+        *data = raw_data * (1 / 1.2 * (69.0 / _sensivity) / 2);
     }
     else
     {
-        *data = (sensor_data[0] << 8 | sensor_data[1]) * (1 / 1.2 * (69.0 / _sensivity));
+        *data = raw_data * (1 / 1.2 * (69.0 / _sensivity));
     }
     ESP_LOGI(TAG, "BH1750 read success.");
     return ESP_OK;

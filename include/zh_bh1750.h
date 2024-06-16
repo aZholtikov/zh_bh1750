@@ -19,7 +19,8 @@
         .i2c_address = I2C_ADDRESS_LOW,    \
         .operation_mode = HIGH_RESOLUTION, \
         .work_mode = ONE_TIME,             \
-        .i2c_port = 0                      \
+        .i2c_port = 0,                     \
+        .auto_adjust = false               \
     }
 
 #ifdef __cplusplus
@@ -52,7 +53,8 @@ extern "C"
             CONTINUOUSLY, // Continuously measurement.
             ONE_TIME      // One time measurement. Sensor is power down after measurement.
         } work_mode;
-        bool i2c_port; // I2C port.
+        bool i2c_port;    // I2C port.
+        bool auto_adjust; // Flag of automatic sensitivity adjustment.
 #ifndef CONFIG_IDF_TARGET_ESP8266
         i2c_master_bus_handle_t i2c_handle; // Unique I2C bus handle.
 #endif

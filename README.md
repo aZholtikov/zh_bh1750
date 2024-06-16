@@ -5,6 +5,11 @@
 1. ESP8266 RTOS_SDK v3.4
 2. ESP32 ESP-IDF v5.2
 
+## Features
+
+1. Recorded illuminance values from 0.11 to 121241 lux (depends on operation mode and sensitivity).
+2. Support automatically sensitivity adjustment.
+
 ## Using
 
 In an existing project, run the following command to install the component:
@@ -66,7 +71,7 @@ void app_main(void)
     for (;;)
     {
         zh_bh1750_read(&lux);
-        printf("Lux %d\n", (uint32_t)lux);
+        printf("Lux %0.2f\n", lux);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
