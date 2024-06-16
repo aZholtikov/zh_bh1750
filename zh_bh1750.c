@@ -142,7 +142,7 @@ READ:
     {
         printf("RAW data %ld\n", raw_data);
         printf("Sensivity %d\n", _sensivity);
-        if (raw_data == 65536 && _sensivity > 31)
+        if (raw_data == 65535 && _sensivity > 31)
         {
             if (zh_bh1750_adjust(_sensivity - 1) == ESP_OK)
             {
@@ -150,7 +150,7 @@ READ:
                 goto REPEATE;
             }
         }
-        if (raw_data == 0 && _sensivity < 254)
+        if (raw_data == 1 && _sensivity < 254)
         {
             if (zh_bh1750_adjust(_sensivity + 1) == ESP_OK)
             {
