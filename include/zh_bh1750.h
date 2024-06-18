@@ -16,7 +16,8 @@
         .operation_mode = HIGH_RESOLUTION, \
         .work_mode = ONE_TIME,             \
         .i2c_port = 0,                     \
-        .auto_adjust = false}
+        .auto_adjust = false               \
+    }
 
 #ifdef __cplusplus
 extern "C"
