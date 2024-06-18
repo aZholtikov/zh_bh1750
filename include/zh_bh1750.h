@@ -10,32 +10,20 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-/**
- * @brief Default values for zh_bh1750_init_config_t structure for initial initialization of the sensor.
- *
- */
 #define ZH_BH1750_INIT_CONFIG_DEFAULT()    \
     {                                      \
         .i2c_address = I2C_ADDRESS_LOW,    \
         .operation_mode = HIGH_RESOLUTION, \
         .work_mode = ONE_TIME,             \
         .i2c_port = 0,                     \
-        .auto_adjust = false               \
-    }
+        .auto_adjust = false}
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    /**
-     * @brief Structure for initial initialization of the sensor.
-     *
-     * @note Before initialize the sensor recommend initialize zh_bh1750_init_config_t structure with default values.
-     *
-     * @code zh_bh1750_init_config_t config = ZH_BH1750_INIT_CONFIG_DEFAULT() @endcode
-     */
-    typedef struct
+    typedef struct // Structure for initial initialization of BH1750 sensor.
     {
         enum // Sensor address.
         {
