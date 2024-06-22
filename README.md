@@ -59,13 +59,13 @@ void app_main(void)
     i2c_master_bus_handle_t i2c_bus_handle;
     i2c_new_master_bus(&i2c_bus_config, &i2c_bus_handle);
 #endif
-    zh_bh1750_init_config_t zh_bh1750_init_config = ZH_BH1750_INIT_CONFIG_DEFAULT();
+    zh_bh1750_init_config_t bh1750_init_config = ZH_BH1750_INIT_CONFIG_DEFAULT();
 #ifdef CONFIG_IDF_TARGET_ESP8266
-    zh_bh1750_init_config.i2c_port = I2C_PORT;
+    bh1750_init_config.i2c_port = I2C_PORT;
 #else
-    zh_bh1750_init_config.i2c_handle = i2c_bus_handle;
+    bh1750_init_config.i2c_handle = i2c_bus_handle;
 #endif
-    zh_bh1750_init(&zh_bh1750_init_config);
+    zh_bh1750_init(&bh1750_init_config);
     zh_bh1750_adjust(69); // Just for an example of how to change the sensor sensitivity.
     float lux = 0.0;
     for (;;)
