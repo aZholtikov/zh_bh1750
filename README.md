@@ -5,6 +5,11 @@
 1. ESP8266 RTOS_SDK v3.4
 2. ESP32 ESP-IDF v5.2
 
+## Features
+
+1. Recorded illuminance values from 0.11 to 121241 lux (depends on operation mode and sensitivity).
+2. Support automatically sensitivity adjustment.
+
 ## Using
 
 In an existing project, run the following command to install the component:
@@ -54,20 +59,21 @@ void app_main(void)
     i2c_master_bus_handle_t i2c_bus_handle;
     i2c_new_master_bus(&i2c_bus_config, &i2c_bus_handle);
 #endif
-    zh_bh1750_init_config_t zh_bh1750_init_config = ZH_BH1750_INIT_CONFIG_DEFAULT();
+    zh_bh1750_init_config_t bh1750_init_config = ZH_BH1750_INIT_CONFIG_DEFAULT();
+    bh1750_init_config.auto_adjust = true;  // Just for an example of how to enable auto adjustment the sensor sensitivity.
 #ifdef CONFIG_IDF_TARGET_ESP8266
-    zh_bh1750_init_config.i2c_port = I2C_PORT;
+    bh1750_init_config.i2c_port = I2C_PORT;
 #else
-    zh_bh1750_init_config.i2c_handle = i2c_bus_handle;
+    bh1750_init_config.i2c_handle = i2c_bus_handle;
 #endif
-    zh_bh1750_init(&zh_bh1750_init_config);
-    zh_bh1750_adjust(69); // Just for an example of how to change the sensor sensitivity.
+    zh_bh1750_init(&bh1750_init_config);
+    zh_bh1750_adjust(69); // Just for an example of how to change the sensor sensitivity. Don’t work if auto adjustment is enabled.
     float lux = 0.0;
     for (;;)
     {
         zh_bh1750_read(&lux);
-        printf("Lux %d\n", (uint32_t)lux);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        printf("Lux %0.2f\n", lux);
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
 ```

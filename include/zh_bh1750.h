@@ -10,16 +10,13 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-/**
- * @brief Default values for zh_bh1750_init_config_t structure for initial initialization of the sensor.
- *
- */
 #define ZH_BH1750_INIT_CONFIG_DEFAULT()    \
     {                                      \
         .i2c_address = I2C_ADDRESS_LOW,    \
         .operation_mode = HIGH_RESOLUTION, \
         .work_mode = ONE_TIME,             \
-        .i2c_port = 0                      \
+        .i2c_port = 0,                     \
+        .auto_adjust = false               \
     }
 
 #ifdef __cplusplus
@@ -27,16 +24,9 @@ extern "C"
 {
 #endif
 
-    /**
-     * @brief Structure for initial initialization of the sensor.
-     *
-     * @note Before initialize the sensor recommend initialize zh_bh1750_init_config_t structure with default values.
-     *
-     * @code zh_bh1750_init_config_t config = ZH_BH1750_INIT_CONFIG_DEFAULT() @endcode
-     */
-    typedef struct
+    typedef struct // Structure for initial initialization of BH1750 sensor.
     {
-        enum // Sensor address.
+        enum // Sensor I2C address.
         {
             I2C_ADDRESS_HIGH = 0x5C, // Data pin is connected to VCC.
             I2C_ADDRESS_LOW = 0x23   // Data pin is not connected / connected to GND.
@@ -52,7 +42,8 @@ extern "C"
             CONTINUOUSLY, // Continuously measurement.
             ONE_TIME      // One time measurement. Sensor is power down after measurement.
         } work_mode;
-        bool i2c_port; // I2C port.
+        bool i2c_port;    // I2C port.
+        bool auto_adjust; // Flag of automatic sensitivity adjustment.
 #ifndef CONFIG_IDF_TARGET_ESP8266
         i2c_master_bus_handle_t i2c_handle; // Unique I2C bus handle.
 #endif
@@ -94,6 +85,8 @@ extern "C"
 
     /**
      * @brief Adjust BH1750 sensor sensitivity.
+     * 
+     * @attention Can only be used if the automatic adjustment is not switched on.
      *
      * @param[in] value Value of sensitivity.
      *
@@ -102,7 +95,7 @@ extern "C"
      * @return
      *              - ESP_OK if adjust was success
      *              - ESP_ERR_INVALID_ARG if parameter error
-     *              - ESP_ERR_NOT_FOUND if BH1750 is not initialized
+     *              - ESP_ERR_NOT_FOUND if BH1750 is not initialized or auto adjust is enabled
      *              - ESP_FAIL if sending command error or slave has not ACK the transfer
      *              - ESP_ERR_INVALID_STATE if I2C driver not installed or not in master mode
      *              - ESP_ERR_TIMEOUT if operation timeout because the bus is busy
