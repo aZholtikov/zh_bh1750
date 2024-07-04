@@ -113,8 +113,8 @@ REPEATE:;
 #endif
     if (esp_err != ESP_OK)
     {
-        ESP_LOGE(TAG, "BH1750 read fail. I2C driver error.");
-        return esp_err;
+        ESP_LOGE(TAG, "BH1750 read fail. I2C driver error at line %d.", __LINE__);
+        return ESP_ERR_INVALID_RESPONSE;
     }
     vTaskDelay(_time / portTICK_PERIOD_MS);
 READ:
@@ -132,8 +132,8 @@ READ:
 #endif
     if (esp_err != ESP_OK)
     {
-        ESP_LOGE(TAG, "BH1750 read fail. I2C driver error.");
-        return esp_err;
+        ESP_LOGE(TAG, "BH1750 read fail. I2C driver error at line %d.", __LINE__);
+        return ESP_ERR_INVALID_RESPONSE;
     }
     uint32_t raw_data = sensor_data[0] << 8 | sensor_data[1];
     if (raw_data == 65535 || raw_data == 0)
@@ -204,8 +204,8 @@ esp_err_t _adjust(const uint8_t value)
     i2c_cmd_link_delete(i2c_cmd_handle);
     if (esp_err != ESP_OK)
     {
-        ESP_LOGE(TAG, "BH1750 adjust fail. I2C driver error.");
-        return esp_err;
+        ESP_LOGE(TAG, "BH1750 adjust fail. I2C driver error at line %d.", __LINE__);
+        return ESP_ERR_INVALID_RESPONSE;
     }
     i2c_cmd_handle = i2c_cmd_link_create();
     i2c_master_start(i2c_cmd_handle);
@@ -220,8 +220,8 @@ esp_err_t _adjust(const uint8_t value)
 #endif
     if (esp_err != ESP_OK)
     {
-        ESP_LOGE(TAG, "BH1750 adjust fail. I2C driver error.");
-        return esp_err;
+        ESP_LOGE(TAG, "BH1750 adjust fail. I2C driver error at line %d.", __LINE__);
+        return ESP_ERR_INVALID_RESPONSE;
     }
     if (_init_config.work_mode == CONTINUOUSLY)
     {

@@ -76,10 +76,8 @@ extern "C"
      * @return
      *              - ESP_OK if read was success
      *              - ESP_ERR_INVALID_ARG if parameter error
-     *              - ESP_ERR_NOT_FOUND if BH1750 is not initialized
-     *              - ESP_FAIL if sending command error or slave has not ACK the transfer
-     *              - ESP_ERR_INVALID_STATE if I2C driver not installed or not in master mode
-     *              - ESP_ERR_TIMEOUT if operation timeout because the bus is busy
+     *              - ESP_ERR_NOT_FOUND if sensor is not initialized
+     *              - ESP_ERR_INVALID_RESPONSE if I2C driver error
      */
     esp_err_t zh_bh1750_read(float *data);
 
@@ -95,10 +93,8 @@ extern "C"
      * @return
      *              - ESP_OK if adjust was success
      *              - ESP_ERR_INVALID_ARG if parameter error
-     *              - ESP_ERR_NOT_FOUND if BH1750 is not initialized or auto adjust is enabled
-     *              - ESP_FAIL if sending command error or slave has not ACK the transfer
-     *              - ESP_ERR_INVALID_STATE if I2C driver not installed or not in master mode
-     *              - ESP_ERR_TIMEOUT if operation timeout because the bus is busy
+     *              - ESP_ERR_NOT_FOUND if sensor is not initialized or auto adjust is enabled
+     *              - ESP_ERR_INVALID_RESPONSE if I2C driver error
      */
     esp_err_t zh_bh1750_adjust(const uint8_t value);
 
