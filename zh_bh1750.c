@@ -87,7 +87,7 @@ esp_err_t zh_bh1750_read(float *data)
         return ESP_ERR_NOT_FOUND;
     }
 REPEATE:;
-    esp_err_t esp_err = ESP_OK;
+    esp_err_t err = ESP_OK;
     uint8_t sensor_data[2] = {0};
     if (_init_config.work_mode == CONTINUOUSLY)
     {
@@ -106,12 +106,12 @@ REPEATE:;
     i2c_master_write_byte(i2c_cmd_handle, _init_config.i2c_address << 1 | I2C_MASTER_WRITE, true);
     i2c_master_write_byte(i2c_cmd_handle, _command, true);
     i2c_master_stop(i2c_cmd_handle);
-    esp_err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
+    err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(i2c_cmd_handle);
 #else
-    esp_err = i2c_master_transmit(_bh1750_handle, &_command, sizeof(_command), 1000 / portTICK_PERIOD_MS);
+    err = i2c_master_transmit(_bh1750_handle, &_command, sizeof(_command), 1000 / portTICK_PERIOD_MS);
 #endif
-    if (esp_err != ESP_OK)
+    if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "BH1750 read fail. I2C driver error at line %d.", __LINE__);
         return ESP_ERR_INVALID_RESPONSE;
@@ -125,12 +125,12 @@ READ:
     i2c_master_read_byte(i2c_cmd_handle, &sensor_data[0], I2C_MASTER_ACK);
     i2c_master_read_byte(i2c_cmd_handle, &sensor_data[1], I2C_MASTER_NACK);
     i2c_master_stop(i2c_cmd_handle);
-    esp_err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
+    err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(i2c_cmd_handle);
 #else
-    esp_err = i2c_master_receive(_bh1750_handle, sensor_data, sizeof(sensor_data), 1000 / portTICK_PERIOD_MS);
+    err = i2c_master_receive(_bh1750_handle, sensor_data, sizeof(sensor_data), 1000 / portTICK_PERIOD_MS);
 #endif
-    if (esp_err != ESP_OK)
+    if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "BH1750 read fail. I2C driver error at line %d.", __LINE__);
         return ESP_ERR_INVALID_RESPONSE;
@@ -192,7 +192,7 @@ esp_err_t _adjust(const uint8_t value)
         ESP_LOGE(TAG, "BH1750 read fail. BH1750 not initialized.");
         return ESP_ERR_NOT_FOUND;
     }
-    esp_err_t esp_err = ESP_OK;
+    esp_err_t err = ESP_OK;
     uint8_t sensitivity_data[2] = {value >> 5 | MEASUREMENT_TIME_HIGH_BIT, (value & 0b00011111) | MEASUREMENT_TIME_LOW_BIT};
 #ifdef CONFIG_IDF_TARGET_ESP8266
     i2c_cmd_handle_t i2c_cmd_handle = i2c_cmd_link_create();
@@ -200,7 +200,7 @@ esp_err_t _adjust(const uint8_t value)
     i2c_master_write_byte(i2c_cmd_handle, _init_config.i2c_address << 1 | I2C_MASTER_WRITE, true);
     i2c_master_write_byte(i2c_cmd_handle, sensitivity_data[0], true);
     i2c_master_stop(i2c_cmd_handle);
-    esp_err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
+    err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(i2c_cmd_handle);
     if (esp_err != ESP_OK)
     {
@@ -212,13 +212,13 @@ esp_err_t _adjust(const uint8_t value)
     i2c_master_write_byte(i2c_cmd_handle, _init_config.i2c_address << 1 | I2C_MASTER_WRITE, true);
     i2c_master_write_byte(i2c_cmd_handle, sensitivity_data[1], true);
     i2c_master_stop(i2c_cmd_handle);
-    esp_err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
+    err = i2c_master_cmd_begin(_init_config.i2c_port, i2c_cmd_handle, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(i2c_cmd_handle);
 #else
-    esp_err = i2c_master_transmit(_bh1750_handle, &sensitivity_data[0], 1, 1000 / portTICK_PERIOD_MS);
-    esp_err = i2c_master_transmit(_bh1750_handle, &sensitivity_data[1], 1, 1000 / portTICK_PERIOD_MS);
+    err = i2c_master_transmit(_bh1750_handle, &sensitivity_data[0], 1, 1000 / portTICK_PERIOD_MS);
+    err = i2c_master_transmit(_bh1750_handle, &sensitivity_data[1], 1, 1000 / portTICK_PERIOD_MS);
 #endif
-    if (esp_err != ESP_OK)
+    if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "BH1750 adjust fail. I2C driver error at line %d.", __LINE__);
         return ESP_ERR_INVALID_RESPONSE;
