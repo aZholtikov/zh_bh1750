@@ -25,7 +25,6 @@ esp_err_t zh_bh1750_init(const zh_bh1750_init_config_t *config, zh_bh1750_handle
     ZH_ERROR_CHECK(config != NULL && handle != NULL, ESP_ERR_INVALID_ARG, NULL, "BH1750 initialization failed. Invalid argument.");
     ZH_ERROR_CHECK(_zh_bh1750_validate_config(config) == ESP_OK, ESP_FAIL, NULL, "BH1750 initialization failed. Initial configuration check failed.");
     ZH_ERROR_CHECK(_zh_bh1750_i2c_init(config, handle) == ESP_OK, ESP_FAIL, NULL, "BH1750 initialization failed. Failed to add I2C device.");
-    handle->sensivity = 69;
     handle->is_initialized = true;
     ZH_LOGI("BH1750 initialization completed successfully.");
     return ESP_OK;
@@ -37,7 +36,6 @@ esp_err_t zh_bh1750_deinit(zh_bh1750_handle_t *handle)
     ZH_ERROR_CHECK(handle != NULL, ESP_ERR_INVALID_ARG, NULL, "BH1750 deinitialization failed. Invalid argument.");
     ZH_ERROR_CHECK(handle->is_initialized == true, ESP_ERR_INVALID_STATE, NULL, "BH1750 deinitialization failed. BH1750 not initialized.");
     ZH_ERROR_CHECK(i2c_master_bus_rm_device(handle->dev_handle) == ESP_OK, ESP_FAIL, NULL, "BH1750 deinitialization failed. I2C remove device failed.");
-    handle->sensivity = 69;
     handle->is_initialized = false;
     ZH_LOGI("BH1750 deinitialization completed successfully.");
     return ESP_OK;

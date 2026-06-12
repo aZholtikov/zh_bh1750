@@ -35,7 +35,6 @@ extern "C"
     typedef struct
     {
         bool is_initialized;                /*!< Sensor initialization flag. */
-        uint8_t sensivity;                  /*!< Sensor sensivity. */
         i2c_master_dev_handle_t dev_handle; /*!< Unique I2C device handle. */
     } zh_bh1750_handle_t;
 
