@@ -212,7 +212,6 @@ zh_bh1750_handle_t bh1750_handle = {0};
 void app_main(void)
 {
     esp_log_level_set("zh_bh1750", ESP_LOG_ERROR);
-    
     i2c_master_bus_config_t i2c_bus_config = {
         .clk_source = I2C_CLK_SRC_DEFAULT,
         .i2c_port = I2C_PORT,
@@ -221,24 +220,18 @@ void app_main(void)
         .glitch_ignore_cnt = 7,
         .flags.enable_internal_pullup = true,
     };
-    
     i2c_master_bus_handle_t i2c_bus_handle;
     i2c_new_master_bus(&i2c_bus_config, &i2c_bus_handle);
-    
     zh_bh1750_init_config_t config = ZH_BH1750_INIT_CONFIG_DEFAULT();
     config.i2c_handle = i2c_bus_handle;
-    
     zh_bh1750_init(&config, &bh1750_handle);
-    
     float lux = 0.0;
     for (;;)
     {
         zh_bh1750_read(&bh1750_handle, &lux);
         printf("Lux: %.2f\n", lux);
-        
         const zh_bh1750_stats_t *stats = zh_bh1750_get_stats();
         printf("I2C errors: %ld\n", stats->i2c_driver_error);
-        
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
@@ -263,7 +256,6 @@ void app_main(void)
 {
     esp_log_level_set("zh_pca9548a", ESP_LOG_ERROR);
     esp_log_level_set("zh_bh1750", ESP_LOG_ERROR);
-    
     i2c_master_bus_config_t i2c_bus_config = {
         .clk_source = I2C_CLK_SRC_DEFAULT,
         .i2c_port = I2C_PORT,
@@ -272,29 +264,22 @@ void app_main(void)
         .glitch_ignore_cnt = 7,
         .flags.enable_internal_pullup = true,
     };
-    
     i2c_master_bus_handle_t i2c_bus_handle = NULL;
     i2c_new_master_bus(&i2c_bus_config, &i2c_bus_handle);
-    
     // Initialize I2C multiplexer
     zh_pca9548a_init_config_t pca_config = ZH_PCA9548A_INIT_CONFIG_DEFAULT();
     pca_config.i2c_handle = i2c_bus_handle;
     pca_config.i2c_address = 0x70;
     zh_pca9548a_init(&pca_config, &pca9548a_handle);
-    
     // Initialize BH1750 sensors on different channels
     zh_bh1750_init_config_t bh1750_config = ZH_BH1750_INIT_CONFIG_DEFAULT();
     bh1750_config.i2c_handle = i2c_bus_handle;
-    
     zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_0);
     zh_bh1750_init(&bh1750_config, &bh1750_handle_chan_0);
-    
     zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_1);
     zh_bh1750_init(&bh1750_config, &bh1750_handle_chan_1);
-    
     zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_2);
     zh_bh1750_init(&bh1750_config, &bh1750_handle_chan_2);
-    
     float lux = 0.0;
     for (;;)
     {
@@ -302,17 +287,14 @@ void app_main(void)
         zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_0);
         zh_bh1750_read(&bh1750_handle_chan_0, &lux);
         printf("Sensor 1. Lux: %.2f\n", lux);
-        
         // Read sensor on channel 1
         zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_1);
         zh_bh1750_read(&bh1750_handle_chan_1, &lux);
         printf("Sensor 2. Lux: %.2f\n", lux);
-        
         // Read sensor on channel 2
         zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_2);
         zh_bh1750_read(&bh1750_handle_chan_2, &lux);
         printf("Sensor 3. Lux: %.2f\n", lux);
-        
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
