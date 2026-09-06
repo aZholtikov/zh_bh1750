@@ -1,25 +1,22 @@
 # ESP32 ESP-IDF component for BH1750 ambient light sensor
 
-## Wiki
-
-[EN](WIKI_EN.md) | [RU](WIKI_RU.md)
-
-## Tested on
-
-1. [ESP32 ESP-IDF v6.0.1](https://docs.espressif.com/projects/esp-idf/en/v6.0.1/esp32/index.html)
-
 ## SAST Tools
 
 [PVS-Studio](https://pvs-studio.com/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source) - static analyzer for C, C++, C#, and Java code.
 
 ## Features
 
-1. Recorded illuminance values from 1 to 65535 lux.
-2. Support some sensors on one device with [zh_pca9548a](https://github.com/aZholtikov/zh_pca9548a).
+1. I2C interface with configurable frequency up to 400 kHz (Fast Mode).
+2. Support for two I2C addresses: 0x23 (ADDR low) and 0x5C (ADDR high).
+3. One-time H-resolution measurement with 1 lux step.
+4. Built-in error statistics tracking and reset for diagnostics.
+5. Automatic lux conversion from raw sensor data.
+6. Sensor presence verification during initialization via I2C probe.
+7. Support multiple sensors on one device with [zh_pca9548a](https://github.com/aZholtikov/zh_pca9548a).
 
-## Attention
+## Note
 
-For correct operation, please enable the following settings in the menuconfig:
+Enable the following settings in menuconfig:
 
 ```text
 I2C_ISR_IRAM_SAFE
@@ -30,7 +27,7 @@ I2C_MASTER_ISR_HANDLER_IN_IRAM
 
 In an existing project, run the following command to install the component:
 
-```text
+```bash
 cd ../your_project/components
 git clone https://github.com/aZholtikov/zh_bh1750.git
 ```
@@ -43,14 +40,12 @@ In the application, add the component:
 
 ## Example
 
-Reading the sensor:
-
 ```c
 #include "zh_bh1750.h"
 
 #define I2C_PORT (I2C_NUM_MAX - 1)
 
-zh_bh1750_handle_t bh1750_handle = {0};
+zh_bh1750_handle_t *bh1750_handle = NULL;
 
 void app_main(void)
 {
@@ -75,65 +70,6 @@ void app_main(void)
         printf("Lux %0.2f\n", lux);
         const zh_bh1750_stats_t *stats = zh_bh1750_get_stats();
         printf("Number of i2c driver error: %ld.\n", stats->i2c_driver_error);
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
-    }
-}
-```
-
-3 sensor on one device:
-
-```c
-#include "zh_pca9548a.h"
-#include "zh_bh1750.h"
-
-#define I2C_PORT (I2C_NUM_MAX - 1)
-
-zh_pca9548a_handle_t pca9548a_handle = {0};
-zh_bh1750_handle_t bh1750_handle_chan_0 = {0};
-zh_bh1750_handle_t bh1750_handle_chan_1 = {0};
-zh_bh1750_handle_t bh1750_handle_chan_2 = {0};
-
-void app_main(void)
-{
-    esp_log_level_set("zh_pca9548a", ESP_LOG_ERROR);
-    esp_log_level_set("zh_bh1750", ESP_LOG_ERROR);
-    i2c_master_bus_config_t i2c_bus_config = {
-        .clk_source = I2C_CLK_SRC_DEFAULT,
-        .i2c_port = I2C_PORT,
-        .scl_io_num = GPIO_NUM_22,
-        .sda_io_num = GPIO_NUM_21,
-        .glitch_ignore_cnt = 7,
-        .flags.enable_internal_pullup = true,
-    };
-    i2c_master_bus_handle_t i2c_bus_handle = NULL;
-    i2c_new_master_bus(&i2c_bus_config, &i2c_bus_handle);
-    zh_pca9548a_init_config_t config = ZH_PCA9548A_INIT_CONFIG_DEFAULT();
-    config.i2c_handle = i2c_bus_handle;
-    config.i2c_address = 0x70;
-    zh_pca9548a_init(&config, &pca9548a_handle);
-    zh_bh1750_init_config_t bh1750_config = ZH_BH1750_INIT_CONFIG_DEFAULT();
-    bh1750_config.i2c_handle = i2c_bus_handle;
-    zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_0);
-    zh_bh1750_init(&bh1750_config, &bh1750_handle_chan_0);
-    zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_1);
-    zh_bh1750_init(&bh1750_config, &bh1750_handle_chan_1);
-    zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_2);
-    zh_bh1750_init(&bh1750_config, &bh1750_handle_chan_2);
-    float lux = 0.0;
-    for (;;)
-    {
-        zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_0);
-        zh_bh1750_read(&bh1750_handle_chan_0, &lux);
-        printf("Sensor 1. Lux %0.2f\n", lux);
-        lux = 0.0;
-        zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_1);
-        zh_bh1750_read(&bh1750_handle_chan_1, &lux);
-        printf("Sensor 2. Lux %0.2f\n", lux);
-        lux = 0.0;
-        zh_pca9548a_set(&pca9548a_handle, ZH_PCA9548A_CHAN_NUM_2);
-        zh_bh1750_read(&bh1750_handle_chan_2, &lux);
-        printf("Sensor 3. Lux %0.2f\n", lux);
-        lux = 0.0;
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
