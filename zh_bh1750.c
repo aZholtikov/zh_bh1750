@@ -54,7 +54,7 @@ static esp_err_t _zh_bh1750_validate_config(const zh_bh1750_init_config_t *confi
  */
 static esp_err_t _zh_bh1750_i2c_init(const zh_bh1750_init_config_t *config, zh_bh1750_handle_t *handle);
 
-esp_err_t zh_bh1750_init(const zh_bh1750_init_config_t *config, zh_bh1750_handle_t **handle) // -V2008
+esp_err_t zh_bh1750_init(const zh_bh1750_init_config_t *config, zh_bh1750_handle_t **handle)
 {
     ZH_LOGI("BH1750 initialization begin.");
     ZH_ERROR_CHECK(config != NULL && handle != NULL, ESP_ERR_INVALID_ARG, NULL, "BH1750 initialization failed. Invalid argument.");
@@ -78,7 +78,7 @@ esp_err_t zh_bh1750_deinit(zh_bh1750_handle_t **handle)
     return ESP_OK;
 }
 
-esp_err_t zh_bh1750_read(zh_bh1750_handle_t **handle, float *data) // -V2008
+esp_err_t zh_bh1750_read(zh_bh1750_handle_t **handle, float *data)
 {
     ZH_LOGI("BH1750 read begin.");
     ZH_ERROR_CHECK(handle != NULL && *handle != NULL && data != NULL, ESP_ERR_INVALID_ARG, NULL, "BH1750 read fail. Invalid argument.");
