@@ -13,6 +13,13 @@ static const char *TAG = "zh_bh1750";
         return err;                                  \
     }
 
+#define ZH_ERROR_CHECK_CONT(cond, cleanup, msg, ...) \
+    if (!(cond))                                     \
+    {                                                \
+        ZH_LOGE(msg, ESP_FAIL, ##__VA_ARGS__);       \
+        cleanup;                                     \
+    }
+
 /**
  * @brief Handle structure for BH1750 sensor.
  *
@@ -83,13 +90,13 @@ esp_err_t zh_bh1750_read(zh_bh1750_handle_t **handle, float *data)
     ZH_LOGI("BH1750 read begin.");
     ZH_ERROR_CHECK(handle != NULL && *handle != NULL && data != NULL, ESP_ERR_INVALID_ARG, NULL, "BH1750 read fail. Invalid argument.");
     uint8_t sensor_data[2] = {0};
-    ZH_ERROR_CHECK(i2c_master_transmit((*handle)->dev_handle, &_bh1750_read_command, sizeof(_bh1750_read_command), 1000 / portTICK_PERIOD_MS) == ESP_OK, ESP_FAIL,
+    ZH_ERROR_CHECK(i2c_master_transmit((*handle)->dev_handle, &_bh1750_read_command, sizeof(_bh1750_read_command), 100) == ESP_OK, ESP_FAIL,
                    ++_stats.i2c_driver_error, "BH1750 read fail. I2C driver error.");
     vTaskDelay(180 / portTICK_PERIOD_MS);
-    ZH_ERROR_CHECK(i2c_master_receive((*handle)->dev_handle, sensor_data, sizeof(sensor_data), 1000 / portTICK_PERIOD_MS) == ESP_OK, ESP_FAIL,
+    ZH_ERROR_CHECK(i2c_master_receive((*handle)->dev_handle, sensor_data, sizeof(sensor_data), 100) == ESP_OK, ESP_FAIL,
                    ++_stats.i2c_driver_error, "BH1750 read fail. I2C driver error.");
     *data = (sensor_data[0] << 8 | sensor_data[1]) / 1.2;
-    ZH_LOGI("BH1750read completed successfully.");
+    ZH_LOGI("BH1750 read completed successfully.");
     return ESP_OK;
 }
 
@@ -108,7 +115,7 @@ void zh_bh1750_reset_stats(void)
 static esp_err_t _zh_bh1750_validate_config(const zh_bh1750_init_config_t *config)
 {
     ZH_ERROR_CHECK(config->i2c_address == 0x23 || config->i2c_address == 0x5C, ESP_ERR_INVALID_ARG, NULL, "Invalid I2C address.");
-    ZH_ERROR_CHECK(config->i2c_frequency <= 400000, ESP_ERR_INVALID_ARG, NULL, "Invalid I2C frequency.");
+    ZH_ERROR_CHECK(config->i2c_frequency <= 400000 && config->i2c_frequency > 0, ESP_ERR_INVALID_ARG, NULL, "Invalid I2C frequency.");
     ZH_ERROR_CHECK(config->i2c_handle != NULL, ESP_ERR_INVALID_ARG, NULL, "Invalid I2C handle.");
     return ESP_OK;
 }
@@ -122,8 +129,8 @@ static esp_err_t _zh_bh1750_i2c_init(const zh_bh1750_init_config_t *config, zh_b
     };
     i2c_master_dev_handle_t _dev_handle = NULL;
     ZH_ERROR_CHECK(i2c_master_bus_add_device(config->i2c_handle, &bh1750_config, &_dev_handle) == ESP_OK, ESP_FAIL, NULL, "Add I2C device failed.");
-    ZH_ERROR_CHECK(i2c_master_probe(config->i2c_handle, config->i2c_address, 1000 / portTICK_PERIOD_MS) == ESP_OK, ESP_ERR_NOT_FOUND,
-                   ZH_ERROR_CHECK(i2c_master_bus_rm_device(_dev_handle) == ESP_OK, ESP_FAIL, NULL, "I2C remove device failed."), "Sensor not connected or not responded.");
+    ZH_ERROR_CHECK(i2c_master_probe(config->i2c_handle, config->i2c_address, 100) == ESP_OK, ESP_ERR_NOT_FOUND,
+                   ZH_ERROR_CHECK_CONT(i2c_master_bus_rm_device(_dev_handle) == ESP_OK, NULL, "I2C remove device failed."), "Sensor not connected or not responded.");
     handle->dev_handle = _dev_handle;
     return ESP_OK;
 }

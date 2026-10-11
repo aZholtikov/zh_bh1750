@@ -10,15 +10,6 @@
 6. Sensor presence verification during initialization via I2C probe.
 7. Support multiple sensors on one device with [zh_pca9548a](https://github.com/aZholtikov/zh_pca9548a).
 
-## Note
-
-Enable the following settings in menuconfig:
-
-```text
-I2C_ISR_IRAM_SAFE
-I2C_MASTER_ISR_HANDLER_IN_IRAM
-```
-
 ## Using
 
 In an existing project, run the following command to install the component:

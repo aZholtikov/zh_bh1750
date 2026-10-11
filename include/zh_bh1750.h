@@ -14,8 +14,8 @@
  * - Error statistics tracking for diagnostics
  * - Thread-safe initialization and deinitialization
  *
- * @note Supported I2C addresses: 0x23 (default), 0x5C (ADDR pin high)
- * @warning Ensure the I2C bus is initialized before calling zh_bh1750_init()
+ * @note Supported I2C addresses: 0x23 (default), 0x5C (ADDR pin high).
+ * @warning Ensure the I2C bus is initialized before calling zh_bh1750_init().
  */
 
 #pragma once
@@ -23,7 +23,9 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "driver/i2c_master.h"
+#include "esp_heap_caps.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #define ZH_BH1750_INIT_CONFIG_DEFAULT() \
     {                                   \
@@ -74,8 +76,8 @@ extern "C"
      * Allocates a handle, validates the provided configuration, and registers
      * the sensor as an I2C device. The I2C bus must already be initialized.
      *
-     * @param[in] config Pointer to the initialization configuration structure (must not be NULL)
-     * @param[out] handle Pointer to receive the allocated sensor handle (must be NULL)
+     * @param[in] config Pointer to the initialization configuration structure
+     * @param[out] handle Pointer to receive the allocated sensor handle
      *
      * @return ESP_OK on success
      * @return ESP_ERR_INVALID_ARG if config or handle is NULL, or parameters are invalid
@@ -91,7 +93,7 @@ extern "C"
      * Removes the sensor from the I2C bus, frees the allocated handle,
      * and sets the handle pointer to NULL.
      *
-     * @param[in,out] handle Pointer to the sensor handle to deinitialize (must not be NULL)
+     * @param handle Pointer to the sensor handle (must not be NULL)
      *
      * @return ESP_OK on success
      * @return ESP_ERR_INVALID_ARG if handle or *handle is NULL
