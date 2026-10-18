@@ -130,7 +130,7 @@ static esp_err_t _zh_bh1750_i2c_init(const zh_bh1750_init_config_t *config, zh_b
     i2c_master_dev_handle_t _dev_handle = NULL;
     ZH_ERROR_CHECK(i2c_master_bus_add_device(config->i2c_handle, &bh1750_config, &_dev_handle) == ESP_OK, ESP_FAIL, NULL, "Add I2C device failed.");
     ZH_ERROR_CHECK(i2c_master_probe(config->i2c_handle, config->i2c_address, 100) == ESP_OK, ESP_ERR_NOT_FOUND,
-                   ZH_ERROR_CHECK_CONT(i2c_master_bus_rm_device(_dev_handle) == ESP_OK, NULL, "I2C remove device failed."), "Sensor not connected or not responded.");
+                   {ZH_ERROR_CHECK_CONT(i2c_master_bus_rm_device(_dev_handle) == ESP_OK, NULL, "I2C remove device failed.")}, "Sensor not connected or not responded.");
     handle->dev_handle = _dev_handle;
     return ESP_OK;
 }
